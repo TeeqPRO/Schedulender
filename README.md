@@ -1,7 +1,7 @@
 # Schedulender
 
-Prosty workspace do planowania dnia: kilka kalendarzy, priorytety wydarzeń oraz
-udostępnianie kalendarza z rolą `EDITOR` lub `VIEWER`.
+Prosty workspace do planowania dnia: kalendarze, priorytety wydarzeń,
+logowanie i udostępnianie kalendarza z rolą `EDITOR` lub `VIEWER`.
 
 ## Uruchomienie
 
@@ -10,17 +10,19 @@ npm install
 npm run dev
 ```
 
-W aplikacji działa demonstracyjny dashboard z lokalnym stanem interfejsu.
+Dashboard jest podłączony do backendu i zapisuje zmiany użytkownika.
 Endpointy backendowe są dostępne pod:
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/calendars`
-- `POST /api/events`
-- `POST /api/invitations`
+- `POST /api/auth/register` i `POST /api/auth/login` — tworzenie konta i logowanie
+- `GET /api/auth/me` oraz `POST /api/auth/logout` — sesja użytkownika
+- `GET/POST /api/calendars` — lista i tworzenie kalendarzy
+- `GET/POST/PATCH/DELETE /api/events` — pełne CRUD wydarzeń
+- `POST /api/invitations` — zaproszenia do kalendarza
 
-Każda operacja zapisywana jest przez `lib/logger.ts`. Endpointy mają prostą
-walidację wejścia i są przygotowane do podpięcia do istniejącego modelu Prisma.
+Dane są przechowywane lokalnie w `data/store.json` (plik jest ignorowany przez
+Git), a hasła są hashowane przez `scrypt`. Każda operacja zapisywana jest przez
+`lib/logger.ts`. Kliknięcie wydarzenia w kalendarzu otwiera edycję, a przycisk
+`Delete` usuwa je z backendu.
 
 ## Skrypty
 
