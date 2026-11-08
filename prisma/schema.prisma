@@ -1,0 +1,159 @@
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum CalendarRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum EventType {
+  GENERAL
+  MEETING
+  STUDY
+  WORK
+  TRAINING
+  PERSONAL
+  APPOINTMENT
+  TASK
+  OTHER
+}
+
+enum EventPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum EventStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MeetingType {
+  NONE
+  GOOGLE_MEET
+  ZOOM
+  MICROSOFT_TEAMS
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calendars           Calendar[]          @relation("CalendarOwner")
+  calendarMemberships CalendarMember[]
+  organizedEvents     Event[]             @relation("EventOrganizer")
+  eventParticipations EventParticipant[]
+  reminders           Reminder[]
+}
+
+model Calendar {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#3B82F6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId String
+  owner   User @relation("CalendarOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  members CalendarMember[]
+  events  Event[]
+
+  @@index([ownerId])
+}
+
+model CalendarMember {
+  id         String       @id @default(cuid())
+  role       CalendarRole @default(VIEWER)
+  joinedAt   DateTime     @default(now())
+
+  userId     String
+  calendarId String
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, calendarId])
+  @@index([calendarId])
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  type        EventType     @default(GENERAL)
+  priority    EventPriority @default(MEDIUM)
+  status      EventStatus   @default(SCHEDULED)
+
+  color       String        @default("#3B82F6")
+  startDate   DateTime
+  endDate     DateTime
+  allDay      Boolean       @default(false)
+
+  location    String?
+  meetingType MeetingType   @default(NONE)
+  meetingUrl  String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  calendarId String
+  calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  organizerId String
+  organizer   User @relation("EventOrganizer", fields: [organizerId], references: [id])
+
+  participants EventParticipant[]
+  reminders    Reminder[]
+
+  @@index([calendarId, startDate])
+  @@index([organizerId])
+  @@index([priority, status])
+  @@index([type])
+}
+
+model EventParticipant {
+  id          String           @id @default(cuid())
+  status      InvitationStatus @default(PENDING)
+  invitedAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  eventId String
+  userId  String
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId, status])
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  remindAt  DateTime
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  eventId String
+  userId  String
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([remindAt, sentAt])
+  @@index([userId])
+}

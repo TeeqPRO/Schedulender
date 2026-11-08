@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #1c242c;
+  --muted: #8b949e;
+  --line: #e8ebee;
+  --paper: #ffffff;
+  --canvas: #f7f8f9;
+  --accent: #ff6b4a;
+  --accent-soft: #fff0eb;
+  --mint: #dcefe9;
+  --yellow: #f6d96f;
+  --blue: #70a9d8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+* { box-sizing: border-box; }
 body {
-  background: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
 }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { width: 250px; padding: 28px 18px; background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: 11px; margin: 0 12px 42px; font-size: 19px; font-weight: 800; letter-spacing: -.5px; }
+.brand-mark { width: 31px; height: 31px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.nav-label { color: #b4bbc1; font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; margin: 0 13px 10px; }
+.nav-item { width: 100%; padding: 11px 13px; border: 0; border-radius: 8px; background: transparent; color: #77808a; text-align: left; display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.nav-icon { width: 17px; text-align: center; font-size: 15px; }
+.calendar-list { margin-top: 37px; }
+.calendar-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; color: #737d86; font-size: 13px; }
+.calendar-name { display: flex; align-items: center; gap: 10px; }
+.calendar-dot { width: 8px; height: 8px; border-radius: 50%; }
+.add-calendar { border: 0; background: none; color: #adb4bb; font-size: 12px; padding: 8px 13px; }
+.sidebar-bottom { margin-top: auto; }
+.user-card { display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding: 18px 10px 0; }
+.avatar { width: 31px; height: 31px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; color: #287362; font-size: 12px; font-weight: 800; }
+.user-card strong { display: block; font-size: 12px; }
+.user-card span { color: #a4abb2; font-size: 10px; }
+.content { flex: 1; min-width: 0; }
+.topbar { height: 78px; padding: 0 42px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid var(--line); }
+.topbar-title { font-size: 13px; color: #899199; }
+.topbar-actions { display: flex; align-items: center; gap: 20px; }
+.icon-button { background: none; border: 0; color: #78838b; font-size: 18px; }
+.main { max-width: 1280px; margin: 0 auto; padding: 36px 42px 60px; }
+.welcome { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 34px; }
+.welcome h1 { margin: 0 0 7px; font-size: 29px; letter-spacing: -1px; }
+.welcome p { margin: 0; color: #929aa1; font-size: 13px; }
+.primary-button { background: var(--accent); color: white; border: 0; border-radius: 6px; padding: 12px 17px; font-size: 12px; font-weight: 700; box-shadow: 0 5px 12px #ff6b4a26; }
+.layout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 9px; }
+.section-head { padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.section-head h2 { margin: 0; font-size: 15px; }
+.section-head span { color: #9da5ac; font-size: 11px; }
+.calendar-toolbar { padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+.month { font-size: 14px; font-weight: 700; }
+.month-nav { display: flex; gap: 5px; }
+.month-nav button { border: 1px solid var(--line); background: white; width: 28px; height: 28px; border-radius: 5px; color: #7d858c; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); }
+.weekday { padding: 13px 8px; text-align: center; color: #a4abb1; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.day-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.day { min-height: 92px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 9px; }
+.day:nth-child(7n) { border-right: 0; }
+.day.muted { background: #fcfcfc; color: #c9cdd0; }
+.day.today .day-number { background: var(--accent); color: white; }
+.day-number { width: 23px; height: 23px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; margin-bottom: 4px; }
+.event { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border-left: 3px solid; background: #f6f7f8; padding: 5px 5px; margin-top: 4px; border-radius: 3px; font-size: 10px; color: #55616a; }
+.event.high { background: #fff0eb; color: #d85639; }
+.event.medium { background: #fff9db; color: #9a7c12; }
+.event.low { background: #edf7f4; color: #4a8778; }
+.side-stack { display: flex; flex-direction: column; gap: 22px; }
+.agenda-list { padding: 4px 22px 18px; }
+.agenda-item { display: grid; grid-template-columns: 55px 8px 1fr; gap: 11px; padding: 15px 0; border-bottom: 1px solid #f1f2f3; align-items: start; }
+.agenda-item:last-child { border-bottom: 0; }
+.agenda-time { color: #a0a8ae; font-size: 10px; padding-top: 2px; }
+.agenda-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; }
+.agenda-item strong { display: block; font-size: 12px; margin-bottom: 4px; }
+.agenda-item span { color: #adb3b8; font-size: 10px; }
+.progress-wrap { padding: 20px 22px 24px; }
+.progress-title { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; }
+.progress-title span { color: var(--accent); font-weight: 700; }
+.progress-bar { height: 7px; background: #f0f1f2; border-radius: 10px; overflow: hidden; }
+.progress-fill { width: 68%; height: 100%; background: var(--accent); border-radius: inherit; }
+.member-list { padding: 7px 22px 17px; }
+.member { display: flex; align-items: center; gap: 9px; padding: 11px 0; }
+.member .avatar { width: 25px; height: 25px; font-size: 9px; }
+.member-info { flex: 1; }
+.member-info strong { display: block; font-size: 11px; }
+.member-info span { font-size: 10px; color: #a3aab0; }
+.role { color: #adb4b9; font-size: 10px; }
+.link-button { border: 0; background: none; color: var(--accent); font-size: 11px; padding: 0; }
+.modal-backdrop { position: fixed; inset: 0; background: #1c242c55; display: grid; place-items: center; z-index: 20; }
+.modal { width: min(460px, calc(100vw - 32px)); background: white; border-radius: 10px; padding: 25px; box-shadow: 0 20px 60px #1c242c30; }
+.modal h2 { margin: 0 0 20px; font-size: 18px; }
+.form-grid { display: grid; gap: 14px; }
+.form-field { display: grid; gap: 6px; }
+.form-field label { color: #747d85; font-size: 11px; font-weight: 700; }
+.form-field input, .form-field select { border: 1px solid var(--line); border-radius: 5px; padding: 10px; color: var(--ink); outline: none; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+.secondary-button { border: 1px solid var(--line); color: #7d858c; background: white; border-radius: 6px; padding: 11px 15px; font-size: 12px; }
+.empty { padding: 30px 20px; color: #9da5ac; text-align: center; font-size: 12px; }
+@media (max-width: 980px) { .sidebar { width: 210px; } .main { padding: 28px 22px 45px; } .topbar { padding: 0 22px; } .layout-grid { grid-template-columns: 1fr; } .side-stack { display: grid; grid-template-columns: 1fr 1fr; } }
+@media (max-width: 670px) { .sidebar { display: none; } .main { padding: 24px 14px 40px; } .topbar { padding: 0 16px; } .welcome { display: block; } .welcome .primary-button { margin-top: 18px; } .side-stack { display: flex; } .day { min-height: 68px; padding: 5px; } .event { font-size: 8px; } }
