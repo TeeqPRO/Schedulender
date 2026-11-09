@@ -28,10 +28,13 @@ button { cursor: pointer; }
 .brand-mark { width: 31px; height: 31px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 16px; }
 .nav-label { color: #b4bbc1; font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; margin: 0 13px 10px; }
 .nav-item { width: 100%; padding: 11px 13px; border: 0; border-radius: 8px; background: transparent; color: #77808a; text-align: left; display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.notification-link { text-decoration: none; }
+.notification-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: white; display: grid; place-items: center; font-size: 10px; }
 .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .nav-icon { width: 17px; text-align: center; font-size: 15px; }
 .calendar-list { margin-top: 37px; }
 .calendar-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; color: #737d86; font-size: 13px; }
+.calendar-row.selected { background: var(--accent-soft); color: var(--accent); border-radius: 6px; }
 .calendar-name { display: flex; align-items: center; gap: 10px; }
 .calendar-dot { width: 8px; height: 8px; border-radius: 50%; }
 .add-calendar { border: 0; background: none; color: #adb4bb; font-size: 12px; padding: 8px 13px; }
@@ -44,6 +47,8 @@ button { cursor: pointer; }
 .topbar { height: 78px; padding: 0 42px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid var(--line); }
 .topbar-title { font-size: 13px; color: #899199; }
 .topbar-actions { display: flex; align-items: center; gap: 20px; }
+.notification-button { position: relative; color: var(--accent); text-decoration: none; font-size: 20px; line-height: 1; }
+.notification-button .notification-badge { position: absolute; top: -10px; right: -12px; }
 .icon-button { background: none; border: 0; color: #78838b; font-size: 18px; }
 .main { max-width: 1280px; margin: 0 auto; padding: 36px 42px 60px; }
 .welcome { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 34px; }
@@ -99,6 +104,12 @@ button { cursor: pointer; }
 .form-field { display: grid; gap: 6px; }
 .form-field label { color: #747d85; font-size: 11px; font-weight: 700; }
 .form-field input, .form-field select { border: 1px solid var(--line); border-radius: 5px; padding: 10px; color: var(--ink); outline: none; }
+.user-suggestions { display: grid; gap: 4px; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; padding: 4px; background: white; }
+.user-suggestion { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; border-radius: 4px; padding: 7px; background: white; color: var(--ink); text-align: left; font-size: 12px; }
+.user-suggestion:hover { background: var(--accent-soft); }
+.user-suggestion .avatar { width: 25px; height: 25px; font-size: 9px; }
+.suggestions-empty { padding: 8px; color: #a3aab0; font-size: 11px; }
+.primary-button:disabled { cursor: not-allowed; opacity: .5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 .secondary-button { border: 1px solid var(--line); color: #7d858c; background: white; border-radius: 6px; padding: 11px 15px; font-size: 12px; }
 .empty { padding: 30px 20px; color: #9da5ac; text-align: center; font-size: 12px; }
@@ -115,5 +126,28 @@ button { cursor: pointer; }
 .event { display: block; width: 100%; border-top: 0; border-right: 0; border-bottom: 0; text-align: left; cursor: pointer; }
 .agenda-item { border: 0; background: transparent; width: 100%; text-align: left; cursor: pointer; }
 .toast { position: fixed; right: 24px; bottom: 24px; background: #1c242c; color: white; padding: 13px 17px; border-radius: 6px; font-size: 12px; z-index: 30; }
+.invitations-page { width: min(760px, 100%); }
+.invitations-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; margin-bottom: 32px; }
+.invitations-header .brand { margin: 0; }
+.back-link { color: var(--accent); font-size: 12px; text-decoration: none; }
+.invitations-header h1 { margin: 18px 0 7px; font-size: 30px; }
+.invitation-list { display: grid; gap: 12px; }
+.invitation-card { display: flex; align-items: center; gap: 14px; padding: 18px 20px; background: white; border: 1px solid var(--line); border-radius: 9px; }
+.invitation-copy { flex: 1; display: grid; gap: 5px; font-size: 12px; }
+.invitation-copy span { color: #929aa1; font-size: 11px; }
+.invitation-actions { display: flex; gap: 8px; }
+.invitation-actions button { white-space: nowrap; }
+.invitation-card.empty { display: grid; justify-items: center; gap: 7px; padding: 42px 20px; }
+.invitation-card.empty strong { font-size: 14px; }
+.invitation-card.empty span { color: #9da5ac; font-size: 12px; }
+.task-list { display: grid; gap: 12px; }
+.task-card { display: flex; align-items: center; gap: 14px; padding: 18px 20px; background: white; border: 1px solid var(--line); border-radius: 9px; }
+.task-priority { width: 8px; height: 38px; border-radius: 4px; background: var(--blue); }
+.task-priority.high { background: var(--accent); }
+.task-priority.medium { background: var(--yellow); }
+.task-priority.low { background: var(--blue); }
+.task-copy { flex: 1; display: grid; gap: 5px; }
+.task-copy span, .task-card time { color: #929aa1; font-size: 11px; }
+.task-card time { white-space: nowrap; }
 @media (max-width: 980px) { .sidebar { width: 210px; } .main { padding: 28px 22px 45px; } .topbar { padding: 0 22px; } .layout-grid { grid-template-columns: 1fr; } .side-stack { display: grid; grid-template-columns: 1fr 1fr; } }
-@media (max-width: 670px) { .sidebar { display: none; } .main { padding: 24px 14px 40px; } .topbar { padding: 0 16px; } .welcome { display: block; } .welcome .primary-button { margin-top: 18px; } .side-stack { display: flex; } .day { min-height: 68px; padding: 5px; } .event { font-size: 8px; } }
+@media (max-width: 670px) { .sidebar { display: flex; width: 172px; flex: 0 0 172px; padding: 20px 9px; } .sidebar .brand { margin-left: 4px; margin-right: 4px; font-size: 15px; gap: 7px; } .sidebar .brand-mark { width: 27px; height: 27px; } .nav-item { padding-left: 8px; padding-right: 8px; font-size: 11px; gap: 7px; } .calendar-list { margin-top: 24px; } .calendar-row { padding-left: 8px; padding-right: 8px; font-size: 11px; } .add-calendar { padding-left: 8px; padding-right: 8px; font-size: 10px; } .user-card { padding-left: 4px; padding-right: 4px; } .user-card span { display: block; max-width: 105px; overflow: hidden; text-overflow: ellipsis; } .main { padding: 24px 14px 40px; } .topbar { padding: 0 16px; } .welcome { display: block; } .welcome .primary-button { margin-top: 18px; } .side-stack { display: flex; } .day { min-height: 68px; padding: 5px; } .event { font-size: 8px; } .invitations-page { padding: 14px; } .invitations-header { display: block; } .invitations-header .brand { margin-top: 28px; } .invitation-card { align-items: flex-start; flex-wrap: wrap; } .invitation-actions { width: 100%; margin-left: 45px; } }

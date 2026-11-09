@@ -15,16 +15,18 @@ export type EventRecord = {
   ownerId: string;
   color: string;
 };
-export type Invitation = { id: string; email: string; calendarId: string; role: "EDITOR" | "VIEWER"; status: "PENDING" };
-type Store = { users: User[]; calendars: Calendar[]; events: EventRecord[]; invitations: Invitation[] };
+export type Invitation = { id: string; userId: string; userName: string; inviterId: string; inviterName: string; calendarId: string; role: "EDITOR" | "VIEWER"; status: "PENDING" | "ACCEPTED" | "DECLINED" };
+type CalendarMember = { userId: string; calendarId: string; role: "EDITOR" | "VIEWER" };
+type Store = { users: User[]; calendars: Calendar[]; events: EventRecord[]; invitations: Invitation[]; calendarMembers: CalendarMember[] };
 
 const dataDirectory = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDirectory, "store.json");
-const emptyStore: Store = { users: [], calendars: [], events: [], invitations: [] };
+const emptyStore: Store = { users: [], calendars: [], events: [], invitations: [], calendarMembers: [] };
 
 async function load(): Promise<Store> {
   try {
-    return JSON.parse(await readFile(dataFile, "utf8")) as Store;
+    const stored = JSON.parse(await readFile(dataFile, "utf8")) as Partial<Store>;
+    return { ...emptyStore, ...stored, calendarMembers: stored.calendarMembers || [] };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     await mkdir(dataDirectory, { recursive: true });
@@ -62,8 +64,19 @@ export async function getUser(id: string) {
   return (await load()).users.find((user) => user.id === id) ?? null;
 }
 
+export async function searchUsers(query: string, excludeUserId: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return [];
+  return (await load()).users
+    .filter((user) => user.id !== excludeUserId && user.name.toLowerCase().includes(normalizedQuery))
+    .slice(0, 8)
+    .map(({ id, name }) => ({ id, name }));
+}
+
 export async function getCalendars(userId: string) {
-  return (await load()).calendars.filter((calendar) => calendar.ownerId === userId);
+  const store = await load();
+  const sharedCalendarIds = new Set(store.calendarMembers.filter((member) => member.userId === userId).map((member) => member.calendarId));
+  return store.calendars.filter((calendar) => calendar.ownerId === userId || sharedCalendarIds.has(calendar.id));
 }
 
 export async function createCalendar(userId: string, name: string, color: string) {
@@ -75,14 +88,16 @@ export async function createCalendar(userId: string, name: string, color: string
 }
 
 export async function getEvents(userId: string) {
+  const calendars = new Set((await getCalendars(userId)).map((calendar) => calendar.id));
   const store = await load();
-  const calendars = new Set(store.calendars.filter((calendar) => calendar.ownerId === userId).map((calendar) => calendar.id));
   return store.events.filter((event) => calendars.has(event.calendarId));
 }
 
 export async function createEvent(userId: string, input: Omit<EventRecord, "id" | "ownerId">) {
   const store = await load();
-  if (!store.calendars.some((calendar) => calendar.id === input.calendarId && calendar.ownerId === userId)) throw new Error("CALENDAR_NOT_FOUND");
+  const calendar = store.calendars.find((item) => item.id === input.calendarId);
+  const membership = store.calendarMembers.find((member) => member.calendarId === input.calendarId && member.userId === userId);
+  if (!calendar || (calendar.ownerId !== userId && membership?.role !== "EDITOR")) throw new Error("CALENDAR_NOT_FOUND");
   const event = { ...input, id: randomUUID(), ownerId: userId };
   store.events.push(event);
   await save(store);
@@ -109,11 +124,47 @@ export async function deleteEvent(userId: string, id: string) {
   return true;
 }
 
-export async function createInvitation(userId: string, input: Omit<Invitation, "id" | "status">) {
+export async function createInvitation(userId: string, input: { inviteeId: string; calendarId: string; role: "EDITOR" | "VIEWER" }) {
   const store = await load();
   if (!store.calendars.some((calendar) => calendar.id === input.calendarId && calendar.ownerId === userId)) throw new Error("CALENDAR_NOT_FOUND");
-  const invitation = { ...input, id: randomUUID(), status: "PENDING" as const };
+  const invitee = store.users.find((candidate) => candidate.id === input.inviteeId);
+  if (!invitee || invitee.id === userId) throw new Error("USER_NOT_FOUND");
+  const inviter = store.users.find((candidate) => candidate.id === userId);
+  if (!inviter) throw new Error("USER_NOT_FOUND");
+  const invitation = { userId: invitee.id, userName: invitee.name, inviterId: inviter.id, inviterName: inviter.name, calendarId: input.calendarId, role: input.role, id: randomUUID(), status: "PENDING" as const };
   store.invitations.push(invitation);
+  await save(store);
+  return invitation;
+}
+
+export async function getInvitations(userId: string) {
+  const store = await load();
+  const recipient = store.users.find((user) => user.id === userId);
+  return store.invitations
+    .filter((invitation) => {
+      const legacyInvitation = invitation as Invitation & { email?: string };
+      return invitation.status === "PENDING" && (invitation.userId === userId || legacyInvitation.email === recipient?.email);
+    })
+    .map((invitation) => {
+      const calendar = store.calendars.find((item) => item.id === invitation.calendarId);
+      const inviter = store.users.find((user) => user.id === calendar?.ownerId);
+      const legacyInvitation = invitation as Invitation & { email?: string };
+      return { id: invitation.id, userId, userName: recipient?.name || "", inviterId: invitation.inviterId || inviter?.id || "", inviterName: invitation.inviterName || inviter?.name || "Someone", calendarId: invitation.calendarId, calendarName: calendar?.name || "Calendar", role: invitation.role, status: invitation.status, legacyEmail: legacyInvitation.email };
+    });
+}
+
+export async function respondToInvitation(userId: string, id: string, status: "ACCEPTED" | "DECLINED") {
+  const store = await load();
+  const recipient = store.users.find((user) => user.id === userId);
+  const invitation = store.invitations.find((candidate) => {
+    const legacyInvitation = candidate as Invitation & { email?: string };
+    return candidate.id === id && candidate.status === "PENDING" && (candidate.userId === userId || legacyInvitation.email === recipient?.email);
+  });
+  if (!invitation) return null;
+  invitation.status = status;
+  if (status === "ACCEPTED" && !store.calendarMembers.some((member) => member.userId === userId && member.calendarId === invitation.calendarId)) {
+    store.calendarMembers.push({ userId, calendarId: invitation.calendarId, role: invitation.role });
+  }
   await save(store);
   return invitation;
 }

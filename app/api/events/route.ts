@@ -16,10 +16,16 @@ export async function POST(request: Request) {
   if (!body?.title || !body?.calendarId || !body?.startDate || !body?.endDate) {
     return NextResponse.json({ error: "Title, calendar, start date and end date are required." }, { status: 400 });
   }
-  const event = await createEvent(user.id, {
-    title: String(body.title).trim(), description: String(body.description || ""), priority: ["low", "medium", "high"].includes(body.priority) ? body.priority : "medium",
-    startDate: String(body.startDate), endDate: String(body.endDate), calendarId: String(body.calendarId), color: String(body.color || "#ff6b4a"),
-  });
+  let event;
+  try {
+    event = await createEvent(user.id, {
+      title: String(body.title).trim(), description: String(body.description || ""), priority: ["low", "medium", "high"].includes(body.priority) ? body.priority : "medium",
+      startDate: String(body.startDate), endDate: String(body.endDate), calendarId: String(body.calendarId), color: String(body.color || "#ff6b4a"),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "CALENDAR_NOT_FOUND") return NextResponse.json({ error: "You do not have edit access to this calendar." }, { status: 403 });
+    throw error;
+  }
   logAction("event.created", { id: event.id, title: event.title, calendarId: event.calendarId });
   return NextResponse.json({ event }, { status: 201 });
 }
